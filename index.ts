@@ -1,10 +1,17 @@
 import express from "express";
 import {z} from "zod";
-import { GoogleGenAI } from "@google/genai";
+// import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY!
-});
+// const ai = new GoogleGenAI({
+//     apiKey: process.env.GEMINI_API_KEY!
+// });
+
+import { Ollama } from 'ollama'
+
+const ollama = new Ollama({
+  host: 'https://ollama.com',
+  headers: { Authorization: 'Bearer ' + process.env.OLLAMA_API_KEY },
+})
 
 const app = express();
 
@@ -85,13 +92,13 @@ function resolveGraph(graph:StepGrpahtType):Promise<{result:string,id:string}[]>
 function runAgent(prompt:string):Promise<{result:string}> {
     console.log("run prompt " + prompt)
     return new Promise(async (resolve) =>{
-        const interaction = await ai.interactions.create({
-            model: "gemini-3.5-flash",
-            input: prompt,
-          });
-          
+        const response = await ollama.chat({
+            model: 'gpt-oss:120b',
+            messages: [{ role: 'user', content: prompt }],
+          })
+
         resolve({
-            result:interaction.output_text!
+            result:response.message.content!
         })
     })
 }
